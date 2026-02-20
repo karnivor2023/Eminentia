@@ -1,0 +1,2516 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eminentia — Wealth Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --cream: #F5F0E8;
+    --parchment: #EDE5D4;
+    --ink: #1A1714;
+    --charcoal: #2C2825;
+    --warm-gray: #7A746C;
+    --gold: #B8965A;
+    --gold-light: #D4AE72;
+    --gold-pale: #F0E6CF;
+    --green: #2D6A4F;
+    --green-light: #52B788;
+    --red: #9B2226;
+    --red-light: #E63946;
+    --border: rgba(184,150,90,0.2);
+    --shadow: 0 4px 40px rgba(26,23,20,0.08);
+    --radius: 2px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ─── LOGIN SCREEN ─── */
+  #login-screen {
+    position: fixed; inset: 0;
+    background: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .login-bg {
+    position: absolute; inset: 0;
+    background: 
+      radial-gradient(ellipse 60% 50% at 20% 50%, rgba(184,150,90,0.08) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 60% at 80% 30%, rgba(184,150,90,0.05) 0%, transparent 70%);
+  }
+
+  .login-lines {
+    position: absolute; inset: 0; overflow: hidden;
+  }
+  .login-lines::before {
+    content: '';
+    position: absolute;
+    left: 50%; top: 0; bottom: 0;
+    width: 1px;
+    background: linear-gradient(to bottom, transparent, rgba(184,150,90,0.15), transparent);
+    transform: translateX(-50%);
+  }
+
+  .login-card {
+    position: relative;
+    text-align: center;
+    padding: 80px 60px;
+    max-width: 420px;
+    width: 90%;
+    animation: fadeUp 1s ease forwards;
+  }
+
+  .login-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 52px;
+    font-weight: 300;
+    color: var(--cream);
+    letter-spacing: 8px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .login-tagline {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 60px;
+  }
+
+  .login-divider {
+    width: 60px; height: 1px;
+    background: var(--gold);
+    margin: 0 auto 60px;
+    opacity: 0.4;
+  }
+
+  .google-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: transparent;
+    border: 1px solid rgba(184,150,90,0.4);
+    color: var(--cream);
+    padding: 16px 32px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: 1px;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .google-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(184,150,90,0.08);
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+  .google-btn:hover::before { transform: translateX(0); }
+  .google-btn:hover { border-color: var(--gold); }
+
+  .google-icon { width: 18px; height: 18px; }
+
+  .demo-btn {
+    margin-top: 16px;
+    background: rgba(184,150,90,0.12);
+    border: 1px solid rgba(184,150,90,0.2);
+    color: var(--gold);
+    padding: 14px 32px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.3s ease;
+    letter-spacing: 0.5px;
+  }
+  .demo-btn:hover { background: rgba(184,150,90,0.2); }
+
+  .login-note {
+    margin-top: 32px;
+    font-size: 11px;
+    color: rgba(245,240,232,0.3);
+    line-height: 1.6;
+  }
+
+  /* ─── MAIN APP ─── */
+  #app { display: none; min-height: 100vh; }
+
+  /* ─── SIDEBAR ─── */
+  .sidebar {
+    position: fixed;
+    left: 0; top: 0; bottom: 0;
+    width: 240px;
+    background: var(--ink);
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    border-right: 1px solid rgba(184,150,90,0.1);
+  }
+
+  .sidebar-logo {
+    padding: 36px 28px 28px;
+    border-bottom: 1px solid rgba(184,150,90,0.1);
+  }
+  .sidebar-logo-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 300;
+    color: var(--cream);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+  }
+  .sidebar-logo-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    color: var(--gold);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  .sidebar-nav {
+    flex: 1;
+    padding: 24px 0;
+    overflow-y: auto;
+  }
+
+  .nav-section-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: rgba(184,150,90,0.5);
+    text-transform: uppercase;
+    padding: 0 28px;
+    margin-bottom: 8px;
+    margin-top: 20px;
+  }
+  .nav-section-title:first-child { margin-top: 0; }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 28px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: rgba(245,240,232,0.5);
+    font-size: 13px;
+    font-weight: 400;
+    position: relative;
+  }
+  .nav-item::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 2px;
+    background: var(--gold);
+    transform: scaleY(0);
+    transition: transform 0.2s ease;
+  }
+  .nav-item:hover { color: var(--cream); background: rgba(184,150,90,0.05); }
+  .nav-item.active { color: var(--cream); background: rgba(184,150,90,0.08); }
+  .nav-item.active::before { transform: scaleY(1); }
+
+  .nav-icon { width: 16px; height: 16px; opacity: 0.7; }
+  .nav-item.active .nav-icon, .nav-item:hover .nav-icon { opacity: 1; }
+
+  .sidebar-user {
+    padding: 20px 28px;
+    border-top: 1px solid rgba(184,150,90,0.1);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .user-avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: rgba(184,150,90,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Cormorant Garamond', serif;
+    color: var(--gold);
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .user-info { flex: 1; min-width: 0; }
+  .user-name { font-size: 12px; color: var(--cream); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .user-status { font-size: 10px; color: var(--gold); margin-top: 1px; font-family: 'DM Mono'; }
+
+  .privacy-toggle {
+    background: none; border: none; cursor: pointer;
+    color: rgba(245,240,232,0.4);
+    transition: color 0.2s;
+  }
+  .privacy-toggle:hover { color: var(--gold); }
+
+  /* ─── MAIN CONTENT ─── */
+  .main {
+    margin-left: 240px;
+    min-height: 100vh;
+    background: var(--cream);
+  }
+
+  .topbar {
+    height: 64px;
+    background: var(--cream);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 40px;
+    position: sticky; top: 0; z-index: 50;
+  }
+
+  .topbar-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--ink);
+    letter-spacing: 1px;
+  }
+
+  .topbar-right { display: flex; align-items: center; gap: 16px; }
+
+  .btn {
+    padding: 10px 20px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+  }
+  .btn-primary {
+    background: var(--ink);
+    color: var(--cream);
+  }
+  .btn-primary:hover { background: var(--charcoal); }
+  .btn-gold {
+    background: var(--gold);
+    color: var(--ink);
+  }
+  .btn-gold:hover { background: var(--gold-light); }
+  .btn-outline {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--warm-gray);
+  }
+  .btn-outline:hover { border-color: var(--gold); color: var(--ink); }
+
+  .content { padding: 40px; }
+
+  /* ─── PANELS / VIEWS ─── */
+  .panel { display: none; animation: fadeIn 0.3s ease; }
+  .panel.active { display: block; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ─── CARDS ─── */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin-bottom: 40px;
+  }
+
+  .stat-card {
+    background: var(--cream);
+    padding: 28px 28px 24px;
+    position: relative;
+  }
+  .stat-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 28px; right: 28px;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--warm-gray);
+    margin-bottom: 12px;
+  }
+
+  .stat-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px;
+    font-weight: 300;
+    color: var(--ink);
+    line-height: 1;
+    letter-spacing: -0.5px;
+  }
+
+  .stat-sub {
+    font-size: 12px;
+    color: var(--warm-gray);
+    margin-top: 8px;
+  }
+
+  .stat-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    padding: 3px 8px;
+    margin-top: 8px;
+  }
+  .badge-up { background: rgba(45,106,79,0.1); color: var(--green); }
+  .badge-down { background: rgba(155,34,38,0.1); color: var(--red); }
+
+  /* ─── TABLES ─── */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--ink);
+  }
+
+  .section-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--warm-gray);
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  .table-wrap {
+    background: white;
+    border: 1px solid var(--border);
+    margin-bottom: 32px;
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--warm-gray);
+    padding: 14px 20px;
+    text-align: left;
+    background: var(--parchment);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 14px 20px;
+    font-size: 13px;
+    border-bottom: 1px solid rgba(184,150,90,0.08);
+    color: var(--charcoal);
+    vertical-align: middle;
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(184,150,90,0.03); }
+
+  .ticker-cell {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--ink);
+    letter-spacing: 0.5px;
+  }
+
+  .pl-positive { color: var(--green); font-family: 'DM Mono', monospace; font-size: 12px; }
+  .pl-negative { color: var(--red); font-family: 'DM Mono', monospace; font-size: 12px; }
+
+  .action-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--warm-gray);
+    padding: 5px 10px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-left: 4px;
+  }
+  .action-btn:hover { border-color: var(--gold); color: var(--ink); }
+  .action-btn.delete:hover { border-color: var(--red); color: var(--red); }
+
+  /* ─── TWO COLUMN ─── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 32px; }
+  @media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+
+  .chart-card {
+    background: white;
+    border: 1px solid var(--border);
+    padding: 28px;
+  }
+
+  .chart-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--ink);
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ─── MODAL ─── */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(26,23,20,0.7);
+    z-index: 500;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--cream);
+    width: 90%;
+    max-width: 560px;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 40px;
+    position: relative;
+    animation: fadeUp 0.3s ease;
+  }
+
+  .modal-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 24px;
+    font-weight: 400;
+    margin-bottom: 8px;
+  }
+  .modal-sub {
+    font-size: 12px;
+    color: var(--warm-gray);
+    margin-bottom: 32px;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 20px; right: 20px;
+    background: none; border: none;
+    font-size: 20px; cursor: pointer;
+    color: var(--warm-gray);
+    line-height: 1;
+    padding: 4px;
+  }
+  .modal-close:hover { color: var(--ink); }
+
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-full { grid-column: 1 / -1; }
+
+  .form-group { margin-bottom: 0; }
+
+  .form-label {
+    display: block;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--warm-gray);
+    margin-bottom: 8px;
+  }
+
+  .form-input, .form-select, .form-textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    background: white;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s;
+    border-radius: var(--radius);
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--gold); }
+  .form-textarea { resize: vertical; min-height: 80px; }
+
+  .form-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 28px;
+    gap: 0;
+  }
+  .form-tab {
+    padding: 10px 20px;
+    font-size: 12px;
+    cursor: pointer;
+    color: var(--warm-gray);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: all 0.2s;
+  }
+  .form-tab.active { color: var(--ink); border-bottom-color: var(--gold); }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  /* ─── NEWS & AI ─── */
+  .news-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 32px; }
+  @media (max-width: 900px) { .news-grid { grid-template-columns: 1fr; } }
+
+  .news-card {
+    background: white;
+    border: 1px solid var(--border);
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .news-card:hover { border-color: var(--gold-light); }
+
+  .news-source {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .news-title { font-size: 14px; font-weight: 500; color: var(--ink); line-height: 1.5; margin-bottom: 8px; }
+  .news-summary { font-size: 12px; color: var(--warm-gray); line-height: 1.6; }
+  .news-meta { font-size: 11px; color: rgba(122,116,108,0.5); margin-top: 10px; font-family: 'DM Mono'; }
+
+  /* ─── AI ADVISOR ─── */
+  .ai-card {
+    background: var(--ink);
+    border: 1px solid rgba(184,150,90,0.2);
+    padding: 32px;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .ai-card::before {
+    content: '';
+    position: absolute;
+    top: -50%; right: -20%;
+    width: 400px; height: 400px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(184,150,90,0.06) 0%, transparent 70%);
+  }
+
+  .ai-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .ai-icon {
+    width: 40px; height: 40px;
+    background: rgba(184,150,90,0.15);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .ai-title { font-family: 'Cormorant Garamond', serif; font-size: 20px; color: var(--cream); font-weight: 300; }
+  .ai-sub { font-size: 11px; color: var(--gold); font-family: 'DM Mono'; letter-spacing: 1px; }
+
+  .ai-letter {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 15px;
+    line-height: 1.9;
+    color: rgba(245,240,232,0.85);
+    font-style: italic;
+    position: relative;
+  }
+  .ai-letter strong { color: var(--gold-light); font-style: normal; font-weight: 500; }
+
+  .ai-chat-input {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(184,150,90,0.15);
+  }
+  .ai-input {
+    flex: 1;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(184,150,90,0.2);
+    color: var(--cream);
+    padding: 12px 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .ai-input:focus { border-color: var(--gold); }
+  .ai-input::placeholder { color: rgba(245,240,232,0.3); }
+  .ai-send {
+    background: var(--gold);
+    border: none;
+    color: var(--ink);
+    padding: 12px 20px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .ai-send:hover { background: var(--gold-light); }
+
+  .ai-response {
+    margin-top: 20px;
+    padding: 20px;
+    background: rgba(255,255,255,0.04);
+    border-left: 2px solid var(--gold);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 15px;
+    line-height: 1.8;
+    color: rgba(245,240,232,0.85);
+    font-style: italic;
+    display: none;
+  }
+
+  /* ─── REPORTS ─── */
+  .report-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 32px; }
+  @media (max-width: 900px) { .report-cards { grid-template-columns: 1fr; } }
+
+  .report-card {
+    background: white;
+    border: 1px solid var(--border);
+    padding: 28px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .report-card:hover { border-color: var(--gold); }
+  .report-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--gold);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+    transform-origin: left;
+  }
+  .report-card:hover::after { transform: scaleX(1); }
+
+  .report-period {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .report-title { font-family: 'Cormorant Garamond', serif; font-size: 20px; color: var(--ink); margin-bottom: 8px; }
+  .report-desc { font-size: 12px; color: var(--warm-gray); line-height: 1.6; }
+
+  /* ─── HISTORY ─── */
+  .history-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 0;
+    border-bottom: 1px solid rgba(184,150,90,0.08);
+  }
+  .history-type {
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    font-size: 14px;
+  }
+  .h-buy { background: rgba(45,106,79,0.1); }
+  .h-sell { background: rgba(155,34,38,0.1); }
+  .h-rotate { background: rgba(184,150,90,0.1); }
+  .h-cash { background: rgba(26,23,20,0.08); }
+  .history-info { flex: 1; }
+  .history-title { font-size: 13px; color: var(--ink); font-weight: 500; }
+  .history-meta { font-size: 11px; color: var(--warm-gray); margin-top: 2px; font-family: 'DM Mono'; }
+  .history-amount { font-family: 'DM Mono', monospace; font-size: 13px; }
+  .history-amount.pos { color: var(--green); }
+  .history-amount.neg { color: var(--red); }
+
+  /* ─── PRIVACY BANNER ─── */
+  .privacy-banner {
+    background: var(--gold-pale);
+    border: 1px solid var(--gold);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    font-size: 12px;
+    color: var(--ink);
+  }
+  .privacy-banner.hidden-mode { background: rgba(26,23,20,0.05); border-color: var(--warm-gray); }
+
+  /* ─── ROTATION MODAL ─── */
+  .rotation-preview {
+    background: var(--parchment);
+    padding: 16px;
+    margin: 16px 0;
+    font-size: 13px;
+    line-height: 1.8;
+    border-left: 3px solid var(--gold);
+  }
+
+  /* ─── EMAIL SCHEDULE ─── */
+  .email-schedule {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .schedule-card {
+    background: white;
+    border: 1px solid var(--border);
+    padding: 24px;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .schedule-icon {
+    width: 40px; height: 40px;
+    background: var(--gold-pale);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+  .schedule-info h4 { font-family: 'Cormorant Garamond', serif; font-size: 16px; margin-bottom: 4px; }
+  .schedule-info p { font-size: 12px; color: var(--warm-gray); line-height: 1.5; }
+  .schedule-toggle {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--warm-gray);
+  }
+  .toggle-switch {
+    width: 36px; height: 20px;
+    background: var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    position: relative;
+    transition: background 0.2s;
+  }
+  .toggle-switch.on { background: var(--green); }
+  .toggle-switch::after {
+    content: '';
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: white;
+    transition: left 0.2s;
+  }
+  .toggle-switch.on::after { left: 18px; }
+
+  /* ─── MISC ─── */
+  .empty-state {
+    padding: 60px;
+    text-align: center;
+    color: var(--warm-gray);
+  }
+  .empty-state-icon { font-size: 40px; margin-bottom: 16px; opacity: 0.4; }
+  .empty-state-text { font-family: 'Cormorant Garamond', serif; font-size: 18px; color: var(--warm-gray); }
+
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border: 1px solid;
+  }
+  .tag-gbm { color: #1a6fa0; border-color: rgba(26,111,160,0.3); background: rgba(26,111,160,0.08); }
+  .tag-ibkr { color: #7b3f9e; border-color: rgba(123,63,158,0.3); background: rgba(123,63,158,0.08); }
+  .tag-crypto { color: #c07d00; border-color: rgba(192,125,0,0.3); background: rgba(192,125,0,0.08); }
+  .tag-cash { color: var(--green); border-color: rgba(45,106,79,0.3); background: rgba(45,106,79,0.08); }
+
+  .loading-spinner {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 2px solid rgba(184,150,90,0.3);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .update-bar {
+    background: rgba(45,106,79,0.08);
+    border: 1px solid rgba(45,106,79,0.2);
+    padding: 10px 20px;
+    font-size: 12px;
+    color: var(--green);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.5px;
+  }
+
+  .notification-dot {
+    width: 6px; height: 6px;
+    background: var(--gold);
+    border-radius: 50%;
+    display: inline-block;
+    margin-left: 6px;
+    vertical-align: middle;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  .mobile-toggle {
+    display: none;
+    position: fixed;
+    bottom: 20px; right: 20px;
+    width: 48px; height: 48px;
+    background: var(--ink);
+    border: none;
+    color: var(--cream);
+    font-size: 20px;
+    cursor: pointer;
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+
+  @media (max-width: 768px) {
+    .sidebar { transform: translateX(-100%); transition: transform 0.3s ease; }
+    .sidebar.open { transform: translateX(0); }
+    .main { margin-left: 0; }
+    .content { padding: 20px; }
+    .cards-grid { grid-template-columns: 1fr 1fr; }
+    .two-col { grid-template-columns: 1fr; }
+    .report-cards { grid-template-columns: 1fr; }
+    .news-grid { grid-template-columns: 1fr; }
+    .email-schedule { grid-template-columns: 1fr; }
+    .mobile-toggle { display: flex; }
+    .form-grid { grid-template-columns: 1fr; }
+    .tab-content.active { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ─── LOGIN SCREEN ─── -->
+<div id="login-screen">
+  <div class="login-bg"></div>
+  <div class="login-lines"></div>
+  <div class="login-card">
+    <div class="login-logo">Eminentia</div>
+    <div class="login-tagline">Wealth Intelligence Platform</div>
+    <div class="login-divider"></div>
+    <button class="google-btn" onclick="loginWithGoogle()">
+      <svg class="google-icon" viewBox="0 0 24 24">
+        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+      </svg>
+      Continuar con Google
+    </button>
+    <button class="demo-btn" onclick="loginDemo()">Entrar en modo demo</button>
+    <div class="login-note">
+      Tu información es privada por defecto.<br>
+      Solo tú decides qué compartir.
+    </div>
+  </div>
+</div>
+
+<!-- ─── MAIN APP ─── -->
+<div id="app">
+  <!-- SIDEBAR -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-text">Eminentia</div>
+      <div class="sidebar-logo-sub">Wealth Intelligence</div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-section-title">Overview</div>
+      <div class="nav-item active" onclick="showPanel('dashboard')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </div>
+      <div class="nav-item" onclick="showPanel('ai')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+        IA Advisor <span class="notification-dot"></span>
+      </div>
+
+      <div class="nav-section-title">Cuentas</div>
+      <div class="nav-item" onclick="showPanel('gbm')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        GBM Trading MX
+      </div>
+      <div class="nav-item" onclick="showPanel('ibkr')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        IBKR Market USA
+      </div>
+      <div class="nav-item" onclick="showPanel('crypto')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        Crypto
+      </div>
+      <div class="nav-item" onclick="showPanel('cash')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
+        Efectivo
+      </div>
+
+      <div class="nav-section-title">Análisis</div>
+      <div class="nav-item" onclick="showPanel('news')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8M15 18h-5M10 6h8v4h-8z"/></svg>
+        Noticias & Macro
+      </div>
+      <div class="nav-item" onclick="showPanel('reports')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+        Reportes
+      </div>
+      <div class="nav-item" onclick="showPanel('history')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Historial
+      </div>
+      <div class="nav-item" onclick="showPanel('settings')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        Configuración
+      </div>
+    </div>
+    <div class="sidebar-user">
+      <div class="user-avatar" id="user-avatar">U</div>
+      <div class="user-info">
+        <div class="user-name" id="user-name">Usuario</div>
+        <div class="user-status" id="user-status">● Privado</div>
+      </div>
+      <button class="privacy-toggle" onclick="togglePrivacy()" title="Cambiar privacidad">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="page-title">Dashboard</div>
+      <div class="topbar-right">
+        <span id="last-update" style="font-family:'DM Mono',monospace;font-size:10px;color:var(--warm-gray);letter-spacing:1px;"></span>
+        <button class="btn btn-outline" onclick="refreshPrices()" id="refresh-btn">↻ Actualizar</button>
+        <button class="btn btn-primary" onclick="openAddModal()">+ Agregar Activo</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- DASHBOARD PANEL -->
+      <div class="panel active" id="panel-dashboard">
+        <div class="update-bar" id="update-bar">
+          <span><span class="loading-spinner" id="price-spinner" style="display:none"></span>Precios actualizados: <span id="update-time">—</span></span>
+          <span style="color:var(--warm-gray)">Auto-refresh: 5 min</span>
+        </div>
+
+        <div class="cards-grid">
+          <div class="stat-card">
+            <div class="stat-label">Patrimonio Total (MXN)</div>
+            <div class="stat-value" id="total-mxn">$—</div>
+            <div class="stat-sub" id="total-usd-equiv">≈ — USD</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">GBM Trading MX</div>
+            <div class="stat-value" id="gbm-total">$—</div>
+            <div class="stat-badge badge-up" id="gbm-badge">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">IBKR Market USA</div>
+            <div class="stat-value" id="ibkr-total">$—</div>
+            <div class="stat-badge badge-up" id="ibkr-badge">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Smart Cash</div>
+            <div class="stat-value" id="cash-total">$—</div>
+            <div class="stat-sub">Efectivo disponible</div>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="chart-card">
+            <div class="chart-title">Distribución del portafolio</div>
+            <canvas id="portfolioChart" height="220"></canvas>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">Rendimiento por activo (%)</div>
+            <canvas id="performanceChart" height="220"></canvas>
+          </div>
+        </div>
+
+        <div class="section-header">
+          <div>
+            <div class="section-title">Resumen de posiciones</div>
+            <div class="section-sub">Todas las cuentas</div>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table id="summary-table">
+            <thead>
+              <tr>
+                <th>Ticker</th>
+                <th>Nombre</th>
+                <th>Cuenta</th>
+                <th>Cant.</th>
+                <th>Precio actual</th>
+                <th>Valor total</th>
+                <th>P/L %</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="summary-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- GBM PANEL -->
+      <div class="panel" id="panel-gbm">
+        <div class="section-header">
+          <div>
+            <div class="section-title">GBM Trading MX</div>
+            <div class="section-sub">Posiciones en pesos mexicanos</div>
+          </div>
+          <button class="btn btn-primary" onclick="openAddModal('gbm')">+ Agregar</button>
+        </div>
+        <div class="cards-grid" style="margin-bottom:24px">
+          <div class="stat-card">
+            <div class="stat-label">Valor Total MXN</div>
+            <div class="stat-value" id="gbm-total-detail">$—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Posiciones</div>
+            <div class="stat-value" id="gbm-count">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">En positivo / negativo</div>
+            <div class="stat-value" id="gbm-pnl-count">—</div>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Ticker</th><th>Nombre</th><th>Cant.</th><th>Precio compra</th><th>Precio actual</th><th>Valor MXN</th><th>P/L %</th><th></th></tr>
+            </thead>
+            <tbody id="gbm-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- IBKR PANEL -->
+      <div class="panel" id="panel-ibkr">
+        <div class="section-header">
+          <div>
+            <div class="section-title">Interactive Brokers — Market USA</div>
+            <div class="section-sub">Posiciones en dólares americanos</div>
+          </div>
+          <button class="btn btn-primary" onclick="openAddModal('ibkr')">+ Agregar</button>
+        </div>
+        <div class="cards-grid" style="margin-bottom:24px">
+          <div class="stat-card">
+            <div class="stat-label">Valor Total USD</div>
+            <div class="stat-value" id="ibkr-total-detail">$—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Tipo de cambio</div>
+            <div class="stat-value" id="fx-rate">$—</div>
+            <div class="stat-sub">USD/MXN</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Equivalente MXN</div>
+            <div class="stat-value" id="ibkr-mxn">$—</div>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Ticker</th><th>Nombre</th><th>Cant.</th><th>Precio compra USD</th><th>Precio actual</th><th>Valor USD</th><th>P/L %</th><th></th></tr>
+            </thead>
+            <tbody id="ibkr-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- CRYPTO PANEL -->
+      <div class="panel" id="panel-crypto">
+        <div class="section-header">
+          <div>
+            <div class="section-title">Criptomonedas</div>
+            <div class="section-sub">Activos digitales</div>
+          </div>
+          <button class="btn btn-primary" onclick="openAddModal('crypto')">+ Agregar</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Moneda</th><th>Nombre</th><th>Cantidad</th><th>Precio compra</th><th>Precio actual</th><th>Valor USD</th><th>P/L %</th><th></th></tr>
+            </thead>
+            <tbody id="crypto-tbody"></tbody>
+          </table>
+        </div>
+        <div class="empty-state" id="crypto-empty" style="display:none">
+          <div class="empty-state-icon">₿</div>
+          <div class="empty-state-text">Sin posiciones en crypto</div>
+          <button class="btn btn-primary" style="margin-top:16px" onclick="openAddModal('crypto')">Agregar cripto</button>
+        </div>
+      </div>
+
+      <!-- CASH PANEL -->
+      <div class="panel" id="panel-cash">
+        <div class="section-header">
+          <div>
+            <div class="section-title">Efectivo & Smart Cash</div>
+            <div class="section-sub">Liquidez disponible</div>
+          </div>
+          <button class="btn btn-primary" onclick="openAddModal('cash')">+ Agregar cuenta</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Nombre</th><th>Moneda</th><th>Monto</th><th>Descripción</th><th></th></tr>
+            </thead>
+            <tbody id="cash-tbody"></tbody>
+          </table>
+        </div>
+        <div style="margin-top:24px">
+          <div class="section-header">
+            <div class="section-title">Rotar Capital</div>
+          </div>
+          <div style="background:white;border:1px solid var(--border);padding:28px">
+            <p style="font-size:13px;color:var(--warm-gray);margin-bottom:20px">Mueve capital entre cuentas y registra la rotación en tu historial.</p>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Desde</label>
+                <select class="form-select" id="rotate-from">
+                  <option value="cash">Efectivo / Smart Cash</option>
+                  <option value="gbm">GBM Trading MX</option>
+                  <option value="ibkr">IBKR Market USA</option>
+                  <option value="crypto">Crypto</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Hacia</label>
+                <select class="form-select" id="rotate-to">
+                  <option value="gbm">GBM Trading MX</option>
+                  <option value="ibkr">IBKR Market USA</option>
+                  <option value="crypto">Crypto</option>
+                  <option value="cash">Efectivo / Smart Cash</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Monto (MXN)</label>
+                <input type="number" class="form-input" id="rotate-amount" placeholder="10000">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Nota</label>
+                <input type="text" class="form-input" id="rotate-note" placeholder="Ej: Rebalanceo mensual">
+              </div>
+            </div>
+            <button class="btn btn-gold" style="margin-top:8px" onclick="rotateCapital()">Registrar rotación</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI ADVISOR PANEL -->
+      <div class="panel" id="panel-ai">
+        <div class="ai-card">
+          <div class="ai-header">
+            <div class="ai-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#B8965A" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+            </div>
+            <div>
+              <div class="ai-title">Eminentia Advisor</div>
+              <div class="ai-sub">Carta semanal · Análisis personalizado</div>
+            </div>
+          </div>
+          <div class="ai-letter" id="weekly-letter">
+            <!-- Generated dynamically -->
+          </div>
+          <div class="ai-chat-input">
+            <input type="text" class="ai-input" id="ai-question" placeholder="Pregúntame sobre tu portafolio, mercados, estrategia..." onkeydown="if(event.key==='Enter')askAI()">
+            <button class="ai-send" onclick="askAI()">Consultar</button>
+          </div>
+          <div class="ai-response" id="ai-response"></div>
+        </div>
+
+        <div style="margin-top:32px">
+          <div class="section-header">
+            <div>
+              <div class="section-title">Alertas del mercado</div>
+              <div class="section-sub">Indicadores clave esta semana</div>
+            </div>
+          </div>
+          <div id="macro-alerts"></div>
+        </div>
+      </div>
+
+      <!-- NEWS PANEL -->
+      <div class="panel" id="panel-news">
+        <div class="section-header">
+          <div>
+            <div class="section-title">Noticias & Análisis Macro</div>
+            <div class="section-sub">Fuentes globales · Actualizado hoy</div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:24px">
+          <div class="section-header"><div class="section-title" style="font-size:16px">🌎 Macro Global</div></div>
+          <div class="news-grid" id="macro-news"></div>
+        </div>
+
+        <div style="margin-bottom:24px">
+          <div class="section-header"><div class="section-title" style="font-size:16px">📊 Tus posiciones</div></div>
+          <div class="news-grid" id="position-news"></div>
+        </div>
+
+        <div>
+          <div class="section-header"><div class="section-title" style="font-size:16px">🇲🇽 México</div></div>
+          <div class="news-grid" id="mx-news"></div>
+        </div>
+      </div>
+
+      <!-- REPORTS PANEL -->
+      <div class="panel" id="panel-reports">
+        <div class="section-header">
+          <div>
+            <div class="section-title">Reportes de desempeño</div>
+            <div class="section-sub">Análisis mensual, trimestral y anual</div>
+          </div>
+        </div>
+
+        <div class="report-cards">
+          <div class="report-card" onclick="showReport('weekly')">
+            <div class="report-period">Semanal</div>
+            <div class="report-title">Esta semana</div>
+            <div class="report-desc">Carta del asesor, movimientos, variaciones y recomendaciones para los próximos 7 días.</div>
+          </div>
+          <div class="report-card" onclick="showReport('monthly')">
+            <div class="report-period">Mensual</div>
+            <div class="report-title">Febrero 2026</div>
+            <div class="report-desc">Resumen de posiciones, P/L del mes, rotaciones realizadas y puntos clave.</div>
+          </div>
+          <div class="report-card" onclick="showReport('quarterly')">
+            <div class="report-period">Trimestral</div>
+            <div class="report-title">Q1 2026</div>
+            <div class="report-desc">Análisis profundo de 3 meses, comparativa vs benchmarks, ajustes de estrategia.</div>
+          </div>
+          <div class="report-card" onclick="showReport('annual')">
+            <div class="report-period">Anual</div>
+            <div class="report-title">2025 completo</div>
+            <div class="report-desc">Reporte anual de riqueza estilo carta Buffett, con perspectivas y metas para el siguiente año.</div>
+          </div>
+        </div>
+
+        <div id="report-content" style="display:none">
+          <div class="ai-card">
+            <div class="ai-header">
+              <div class="ai-icon">📋</div>
+              <div>
+                <div class="ai-title" id="report-title-display">Reporte</div>
+                <div class="ai-sub" id="report-period-display">Generado ahora</div>
+              </div>
+            </div>
+            <div class="ai-letter" id="report-body" style="white-space:pre-line"></div>
+          </div>
+        </div>
+
+        <div style="margin-top:40px">
+          <div class="section-header">
+            <div>
+              <div class="section-title">Reportes por email</div>
+              <div class="section-sub">Automatiza el envío a tu correo</div>
+            </div>
+          </div>
+          <div class="email-schedule">
+            <div class="schedule-card">
+              <div class="schedule-icon">📬</div>
+              <div class="schedule-info">
+                <h4>Carta semanal</h4>
+                <p>Cada lunes al cierre del mercado. Análisis de tu portafolio con perspectiva de la semana.</p>
+                <div class="schedule-toggle">
+                  <div class="toggle-switch on" id="toggle-weekly" onclick="toggleEmail('weekly')"></div>
+                  Activado
+                </div>
+              </div>
+            </div>
+            <div class="schedule-card">
+              <div class="schedule-icon">📊</div>
+              <div class="schedule-info">
+                <h4>Cierre mensual</h4>
+                <p>Primer día hábil del mes. Resumen completo de posiciones y rendimiento.</p>
+                <div class="schedule-toggle">
+                  <div class="toggle-switch on" id="toggle-monthly" onclick="toggleEmail('monthly')"></div>
+                  Activado
+                </div>
+              </div>
+            </div>
+            <div class="schedule-card">
+              <div class="schedule-icon">📈</div>
+              <div class="schedule-info">
+                <h4>Trimestral</h4>
+                <p>Análisis profundo cada trimestre con comparativa vs benchmarks y ajuste de estrategia.</p>
+                <div class="schedule-toggle">
+                  <div class="toggle-switch" id="toggle-quarterly" onclick="toggleEmail('quarterly')"></div>
+                  Desactivado
+                </div>
+              </div>
+            </div>
+            <div class="schedule-card">
+              <div class="schedule-icon">🏆</div>
+              <div class="schedule-info">
+                <h4>Reporte anual</h4>
+                <p>Carta anual estilo Buffett. Balance total del año, reflexiones y visión para el siguiente.</p>
+                <div class="schedule-toggle">
+                  <div class="toggle-switch" id="toggle-annual" onclick="toggleEmail('annual')"></div>
+                  Desactivado
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="background:var(--parchment);border:1px solid var(--border);padding:20px;font-size:13px;color:var(--warm-gray)">
+            📧 Los reportes se enviarán a: <strong id="user-email-display" style="color:var(--ink)">tu@email.com</strong>
+            <br><span style="font-size:11px">Los emails se generan con IA personalizada usando los datos de tu portafolio.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- HISTORY PANEL -->
+      <div class="panel" id="panel-history">
+        <div class="section-header">
+          <div>
+            <div class="section-title">Historial de transacciones</div>
+            <div class="section-sub">Todas tus operaciones</div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <select class="form-select" style="width:auto;padding:8px 14px;font-size:12px" id="history-filter" onchange="renderHistory()">
+              <option value="all">Todos</option>
+              <option value="buy">Compras</option>
+              <option value="sell">Ventas</option>
+              <option value="rotate">Rotaciones</option>
+              <option value="cash">Efectivo</option>
+            </select>
+          </div>
+        </div>
+        <div id="history-list" style="background:white;border:1px solid var(--border);padding:0 24px"></div>
+        <div class="empty-state" id="history-empty" style="display:none">
+          <div class="empty-state-icon">📋</div>
+          <div class="empty-state-text">Sin transacciones registradas aún</div>
+        </div>
+      </div>
+
+      <!-- SETTINGS PANEL -->
+      <div class="panel" id="panel-settings">
+        <div class="section-title" style="margin-bottom:24px">Configuración</div>
+        <div style="background:white;border:1px solid var(--border);padding:32px;margin-bottom:20px">
+          <h3 style="font-family:'Cormorant Garamond',serif;font-size:18px;margin-bottom:20px;font-weight:400">Perfil & Privacidad</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Nombre para mostrar</label>
+              <input type="text" class="form-input" id="setting-display-name" placeholder="Tu nombre o alias">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input type="email" class="form-input" id="setting-email" placeholder="para recibir reportes">
+            </div>
+          </div>
+          <div style="margin-top:20px">
+            <label class="form-label">Visibilidad del portafolio</label>
+            <div style="display:flex;gap:12px;margin-top:8px">
+              <button class="btn btn-outline" id="btn-private" onclick="setPrivacy('private')" style="flex:1;border-color:var(--gold)">🔒 Privado (solo tú)</button>
+              <button class="btn btn-outline" id="btn-public" onclick="setPrivacy('public')" style="flex:1">🌐 Público (compartible)</button>
+            </div>
+          </div>
+          <div style="margin-top:20px">
+            <label class="form-label">Mostrar nombre real</label>
+            <div style="display:flex;align-items:center;gap:12px;margin-top:8px">
+              <div class="toggle-switch" id="toggle-realname" onclick="toggleRealName()"></div>
+              <span style="font-size:13px;color:var(--warm-gray)">Oculto (muestra solo alias)</span>
+            </div>
+          </div>
+          <button class="btn btn-primary" style="margin-top:24px" onclick="saveSettings()">Guardar cambios</button>
+        </div>
+
+        <div style="background:white;border:1px solid var(--border);padding:32px;margin-bottom:20px">
+          <h3 style="font-family:'Cormorant Garamond',serif;font-size:18px;margin-bottom:20px;font-weight:400">Preferencias de IA</h3>
+          <div class="form-group">
+            <label class="form-label">Estilo de análisis preferido</label>
+            <select class="form-select" id="ai-style">
+              <option value="buffett">Warren Buffett (valor a largo plazo)</option>
+              <option value="dalio">Ray Dalio (macro y diversificación)</option>
+              <option value="technical">Análisis técnico (gráficas y tendencias)</option>
+              <option value="balanced">Equilibrado (todos los enfoques)</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-top:16px">
+            <label class="form-label">Idioma de los reportes</label>
+            <select class="form-select" id="report-lang">
+              <option value="es">Español</option>
+              <option value="en">English</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-top:16px">
+            <label class="form-label">Clave de API Anthropic (para IA real)</label>
+            <input type="password" class="form-input" id="api-key" placeholder="sk-ant-...">
+            <p style="font-size:11px;color:var(--warm-gray);margin-top:6px">Opcional. Sin clave, usa análisis pre-generado basado en tu portafolio.</p>
+          </div>
+          <button class="btn btn-primary" style="margin-top:16px" onclick="saveAISettings()">Guardar</button>
+        </div>
+
+        <div style="background:white;border:1px solid var(--border);padding:32px">
+          <h3 style="font-family:'Cormorant Garamond',serif;font-size:18px;margin-bottom:8px;font-weight:400">Cuenta</h3>
+          <p style="font-size:13px;color:var(--warm-gray);margin-bottom:20px">Versión 1.0.0 — Eminentia Wealth Intelligence</p>
+          <button class="btn btn-outline" onclick="exportData()">📤 Exportar datos (JSON)</button>
+          <button class="btn btn-outline" style="margin-left:8px" onclick="logout()">Cerrar sesión</button>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- MOBILE TOGGLE -->
+<button class="mobile-toggle" id="mobile-toggle" onclick="toggleSidebar()">☰</button>
+
+<!-- ADD ASSET MODAL -->
+<div class="modal-overlay" id="add-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('add-modal')">×</button>
+    <div class="modal-title">Agregar activo</div>
+    <div class="modal-sub">El activo se sumará a tu portafolio y patrimonio automáticamente.</div>
+
+    <div class="form-tabs">
+      <div class="form-tab active" onclick="switchFormTab('stocks')">Acción / ETF</div>
+      <div class="form-tab" onclick="switchFormTab('crypto')">Crypto</div>
+      <div class="form-tab" onclick="switchFormTab('cash')">Efectivo</div>
+    </div>
+
+    <div class="tab-content active" id="form-stocks">
+      <div class="form-group">
+        <label class="form-label">Ticker</label>
+        <input type="text" class="form-input" id="add-ticker" placeholder="AAPL, VOO, AMZN...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nombre</label>
+        <input type="text" class="form-input" id="add-name" placeholder="Apple Inc.">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Cuenta</label>
+        <select class="form-select" id="add-account">
+          <option value="gbm">GBM Trading MX</option>
+          <option value="ibkr">IBKR Market USA</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Cantidad de acciones</label>
+        <input type="number" class="form-input" id="add-qty" placeholder="10" step="0.00001">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Precio de compra</label>
+        <input type="number" class="form-input" id="add-buy-price" placeholder="150.00" step="0.01">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Precio actual (opcional)</label>
+        <input type="number" class="form-input" id="add-current-price" placeholder="Se busca automáticamente" step="0.01">
+      </div>
+      <div class="form-group" style="grid-column:1/-1">
+        <label class="form-label">Moneda</label>
+        <select class="form-select" id="add-currency">
+          <option value="MXN">MXN — Pesos mexicanos</option>
+          <option value="USD">USD — Dólares americanos</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="tab-content" id="form-crypto">
+      <div class="form-group">
+        <label class="form-label">Moneda</label>
+        <input type="text" class="form-input" id="add-crypto-symbol" placeholder="BTC, ETH, SOL...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nombre</label>
+        <input type="text" class="form-input" id="add-crypto-name" placeholder="Bitcoin">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Cantidad</label>
+        <input type="number" class="form-input" id="add-crypto-qty" placeholder="0.5" step="0.00000001">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Precio de compra USD</label>
+        <input type="number" class="form-input" id="add-crypto-price" placeholder="40000" step="0.01">
+      </div>
+    </div>
+
+    <div class="tab-content" id="form-cash">
+      <div class="form-group">
+        <label class="form-label">Nombre / Descripción</label>
+        <input type="text" class="form-input" id="add-cash-name" placeholder="Smart Cash, CETES, etc.">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Monto</label>
+        <input type="number" class="form-input" id="add-cash-amount" placeholder="10000" step="0.01">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Moneda</label>
+        <select class="form-select" id="add-cash-currency">
+          <option value="MXN">MXN</option>
+          <option value="USD">USD</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nota</label>
+        <input type="text" class="form-input" id="add-cash-note" placeholder="Opcional">
+      </div>
+    </div>
+
+    <div style="margin-top:24px;display:flex;gap:12px">
+      <button class="btn btn-primary" style="flex:1" onclick="addAsset()">Agregar al portafolio</button>
+      <button class="btn btn-outline" onclick="closeModal('add-modal')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- REPORT MODAL -->
+<div class="modal-overlay" id="report-modal">
+  <div class="modal" style="max-width:720px">
+    <button class="modal-close" onclick="closeModal('report-modal')">×</button>
+    <div class="modal-title" id="modal-report-title">Reporte</div>
+    <div class="modal-sub" id="modal-report-period">Generado hoy</div>
+    <div class="ai-letter" id="modal-report-body" style="color:var(--ink);font-style:italic;line-height:1.9;font-size:15px;margin-top:24px"></div>
+    <div style="margin-top:24px;display:flex;gap:12px">
+      <button class="btn btn-gold" onclick="sendReportEmail()">📧 Enviar a mi correo</button>
+      <button class="btn btn-outline" onclick="closeModal('report-modal')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// DATA STORE
+// ═══════════════════════════════════════════════════════
+const DB = {
+  get: k => { try { return JSON.parse(localStorage.getItem('eminentia_'+k)) } catch(e) { return null } },
+  set: (k,v) => localStorage.setItem('eminentia_'+k, JSON.stringify(v)),
+};
+
+// Default portfolio data (user's real data from conversation)
+const DEFAULT_GBM = [
+  { ticker:'BLK',     name:'BlackRock',         qty:1,       buyPrice:1000, currentPrice:1343.60, currency:'MXN', pl:34.36 },
+  { ticker:'PYPL',    name:'PayPal',             qty:1,       buyPrice:1000, currentPrice:443.87,  currency:'MXN', pl:-55.61 },
+  { ticker:'ALPEKA',  name:'Alpek A',            qty:10,      buyPrice:100,  currentPrice:167.04,  currency:'MXN', pl:67.04 },
+  { ticker:'INTC',    name:'Intel Corp',         qty:93,      buyPrice:100,  currentPrice:174.32,  currency:'MXN', pl:74.32 },
+  { ticker:'AAPL',    name:'Apple Inc',          qty:12,      buyPrice:100,  currentPrice:105.69,  currency:'MXN', pl:5.69 },
+  { ticker:'NFLX',    name:'Netflix',            qty:27,      buyPrice:100,  currentPrice:92.34,   currency:'MXN', pl:-7.66 },
+  { ticker:'UNH',     name:'UnitedHealth Group', qty:6,       buyPrice:100,  currentPrice:87.59,   currency:'MXN', pl:-12.41 },
+  { ticker:'DIA',     name:'SPDR Dow Jones ETF', qty:2,       buyPrice:100,  currentPrice:109.19,  currency:'MXN', pl:9.19 },
+  { ticker:'ONONN',   name:'On Running (ONON)',  qty:21,      buyPrice:100,  currentPrice:88.35,   currency:'MXN', pl:-11.65 },
+  { ticker:'SPY',     name:'S&P 500 ETF',        qty:1,       buyPrice:100,  currentPrice:112.53,  currency:'MXN', pl:12.53 },
+  { ticker:'QQQ',     name:'Nasdaq 100 ETF',     qty:1,       buyPrice:100,  currentPrice:117.77,  currency:'MXN', pl:17.77 },
+  { ticker:'TGT',     name:'Target Corp',        qty:4,       buyPrice:100,  currentPrice:118.04,  currency:'MXN', pl:18.04 },
+];
+
+const DEFAULT_IBKR = [
+  { ticker:'MRNA', name:'Moderna',          qty:7.85261, buyPrice:45.00, currentPrice:41.78, currency:'USD', pl:-7.16 },
+  { ticker:'VT',   name:'Vanguard Total World', qty:5.9, buyPrice:100.00, currentPrice:113.45, currency:'USD', pl:13.45 },
+  { ticker:'LULU', name:'Lululemon',        qty:0.99557, buyPrice:330.00, currentPrice:219.85, currency:'USD', pl:-33.35 },
+];
+
+const DEFAULT_CASH = [
+  { name:'Smart Cash', amount:147.75, currency:'MXN', note:'Fondo de liquidez' },
+];
+
+function initData() {
+  if (!DB.get('gbm')) DB.set('gbm', DEFAULT_GBM);
+  if (!DB.get('ibkr')) DB.set('ibkr', DEFAULT_IBKR);
+  if (!DB.get('crypto')) DB.set('crypto', []);
+  if (!DB.get('cash')) DB.set('cash', DEFAULT_CASH);
+  if (!DB.get('history')) DB.set('history', []);
+  if (!DB.get('settings')) DB.set('settings', { privacy:'private', showRealName:false, aiStyle:'buffett', lang:'es' });
+  if (!DB.get('emailSchedule')) DB.set('emailSchedule', { weekly:true, monthly:true, quarterly:false, annual:false });
+}
+
+// ═══════════════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════════════
+let currentUser = null;
+let FX_RATE = 17.15;
+
+function loginWithGoogle() {
+  // In production this would use Google OAuth. For demo:
+  const name = prompt('¿Cuál es tu nombre?', 'Eminentia User') || 'Usuario';
+  const email = prompt('¿Cuál es tu email?', 'usuario@gmail.com') || 'usuario@gmail.com';
+  setUser({ name, email, avatar: name[0].toUpperCase() });
+}
+
+function loginDemo() {
+  setUser({ name: 'Demo User', email: 'demo@eminentia.app', avatar: 'D' });
+}
+
+function setUser(user) {
+  currentUser = user;
+  DB.set('user', user);
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('user-name').textContent = user.name;
+  document.getElementById('user-avatar').textContent = user.avatar;
+  document.getElementById('user-email-display').textContent = user.email;
+  document.getElementById('setting-display-name').value = user.name;
+  document.getElementById('setting-email').value = user.email;
+  initData();
+  refreshPrices();
+  renderAll();
+  generateWeeklyLetter();
+  generateNews();
+  setInterval(refreshPrices, 300000);
+}
+
+function logout() {
+  DB.set('user', null);
+  location.reload();
+}
+
+// ═══════════════════════════════════════════════════════
+// PRICES (simulated with realistic variation)
+// ═══════════════════════════════════════════════════════
+const PRICES = {
+  AAPL:221.5, NVDA:780, NFLX:1020, BLK:1040, PYPL:77, INTC:21.5,
+  UNH:483, TGT:131, DIA:449, SPY:596, QQQ:508, ONONN:55.8,
+  ALPEKA:23.5, MRNA:42.5, VT:114.5, LULU:228,
+  BTC:98500, ETH:2750, SOL:165, BNB:490, ADA:0.72, XRP:2.1,
+};
+
+const CRYPTO_PRICES = { BTC:98500, ETH:2750, SOL:165, BNB:490, ADA:0.72, XRP:2.1, DOGE:0.21, AVAX:38, DOT:6.5 };
+
+async function refreshPrices() {
+  const spinner = document.getElementById('price-spinner');
+  const btn = document.getElementById('refresh-btn');
+  if (spinner) spinner.style.display = 'inline-block';
+  if (btn) btn.disabled = true;
+
+  // Simulate price fetch with slight randomization
+  await new Promise(r => setTimeout(r, 800));
+  const variation = () => 1 + (Math.random() - 0.5) * 0.004;
+  Object.keys(PRICES).forEach(k => PRICES[k] *= variation());
+  FX_RATE = 17.15 * variation() * variation();
+
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit' });
+  const el = document.getElementById('update-time');
+  if (el) el.textContent = timeStr;
+  document.getElementById('last-update').textContent = `↻ ${timeStr}`;
+
+  if (spinner) spinner.style.display = 'none';
+  if (btn) btn.disabled = false;
+
+  renderAll();
+}
+
+function getPrice(ticker, account) {
+  if (account === 'crypto') return CRYPTO_PRICES[ticker.toUpperCase()] || 0;
+  return PRICES[ticker.toUpperCase()] || 0;
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER ALL
+// ═══════════════════════════════════════════════════════
+function renderAll() {
+  updateTotals();
+  renderSummaryTable();
+  renderGBM();
+  renderIBKR();
+  renderCrypto();
+  renderCash();
+  renderHistory();
+  renderCharts();
+}
+
+function calcGBMTotal() {
+  const gbm = DB.get('gbm') || [];
+  return gbm.reduce((s, a) => {
+    const price = PRICES[a.ticker.toUpperCase()] || a.currentPrice || a.buyPrice * (1 + a.pl/100);
+    const val = a.qty * price;
+    return s + (a.currency === 'USD' ? val * FX_RATE : val);
+  }, 0);
+}
+
+function calcIBKRTotal() {
+  const ibkr = DB.get('ibkr') || [];
+  return ibkr.reduce((s, a) => {
+    const price = PRICES[a.ticker.toUpperCase()] || a.currentPrice || a.buyPrice * (1 + a.pl/100);
+    return s + a.qty * price;
+  }, 0);
+}
+
+function calcCashTotal() {
+  const cash = DB.get('cash') || [];
+  return cash.reduce((s, c) => s + (c.currency === 'USD' ? c.amount * FX_RATE : c.amount), 0);
+}
+
+function calcCryptoTotal() {
+  const crypto = DB.get('crypto') || [];
+  return crypto.reduce((s, c) => {
+    const price = CRYPTO_PRICES[c.ticker.toUpperCase()] || c.currentPrice || c.buyPrice;
+    return s + c.qty * price;
+  }, 0);
+}
+
+function fmt(n, currency='MXN') {
+  return new Intl.NumberFormat('es-MX', { style:'currency', currency, minimumFractionDigits:2, maximumFractionDigits:2 }).format(n);
+}
+
+function updateTotals() {
+  const gbm = calcGBMTotal();
+  const ibkrUSD = calcIBKRTotal();
+  const ibkrMXN = ibkrUSD * FX_RATE;
+  const cash = calcCashTotal();
+  const crypto = calcCryptoTotal() * FX_RATE;
+  const total = gbm + ibkrMXN + cash + crypto;
+
+  document.getElementById('total-mxn').textContent = fmt(total, 'MXN');
+  document.getElementById('total-usd-equiv').textContent = `≈ ${fmt(total/FX_RATE, 'USD')}`;
+  document.getElementById('gbm-total').textContent = fmt(gbm, 'MXN');
+  document.getElementById('ibkr-total').textContent = fmt(ibkrUSD, 'USD');
+  document.getElementById('cash-total').textContent = fmt(cash, 'MXN');
+  document.getElementById('fx-rate').textContent = `$${FX_RATE.toFixed(2)}`;
+  document.getElementById('gbm-total-detail').textContent = fmt(gbm, 'MXN');
+  document.getElementById('ibkr-total-detail').textContent = fmt(ibkrUSD, 'USD');
+  document.getElementById('ibkr-mxn').textContent = fmt(ibkrMXN, 'MXN');
+  document.getElementById('gbm-count').textContent = (DB.get('gbm')||[]).length;
+
+  const gbmData = DB.get('gbm') || [];
+  const pos = gbmData.filter(a=>a.pl>0).length;
+  const neg = gbmData.filter(a=>a.pl<=0).length;
+  document.getElementById('gbm-pnl-count').textContent = `${pos}↑ / ${neg}↓`;
+
+  const gbmPct = total > 0 ? ((gbm/total)*100).toFixed(1) : 0;
+  document.getElementById('gbm-badge').textContent = `${gbmPct}% del total`;
+  document.getElementById('gbm-badge').className = 'stat-badge badge-up';
+  const ibkrPct = total > 0 ? ((ibkrMXN/total)*100).toFixed(1) : 0;
+  document.getElementById('ibkr-badge').textContent = `${ibkrPct}% del total`;
+}
+
+function plClass(pl) { return pl >= 0 ? 'pl-positive' : 'pl-negative'; }
+function plSign(pl) { return pl >= 0 ? '+' : ''; }
+
+function renderSummaryTable() {
+  const tbody = document.getElementById('summary-tbody');
+  if (!tbody) return;
+  let rows = '';
+  const gbm = DB.get('gbm') || [];
+  const ibkr = DB.get('ibkr') || [];
+  const crypto = DB.get('crypto') || [];
+
+  gbm.forEach(a => {
+    const price = PRICES[a.ticker.toUpperCase()] || a.buyPrice * (1 + a.pl/100);
+    const val = a.qty * price;
+    const pl = ((price - a.buyPrice) / a.buyPrice * 100);
+    rows += `<tr>
+      <td class="ticker-cell">${a.ticker}</td>
+      <td>${a.name}</td>
+      <td><span class="tag tag-gbm">GBM</span></td>
+      <td>${a.qty}</td>
+      <td>${fmt(price, 'MXN')}</td>
+      <td>${fmt(val, 'MXN')}</td>
+      <td class="${plClass(pl)}">${plSign(pl)}${pl.toFixed(2)}%</td>
+      <td>
+        <button class="action-btn" onclick="openSellModal('gbm','${a.ticker}')">Vender</button>
+        <button class="action-btn delete" onclick="removeAsset('gbm','${a.ticker}')">✕</button>
+      </td>
+    </tr>`;
+  });
+
+  ibkr.forEach(a => {
+    const price = PRICES[a.ticker.toUpperCase()] || a.buyPrice * (1 + a.pl/100);
+    const val = a.qty * price;
+    const pl = ((price - a.buyPrice) / a.buyPrice * 100);
+    rows += `<tr>
+      <td class="ticker-cell">${a.ticker}</td>
+      <td>${a.name}</td>
+      <td><span class="tag tag-ibkr">IBKR</span></td>
+      <td>${a.qty}</td>
+      <td>${fmt(price, 'USD')}</td>
+      <td>${fmt(val, 'USD')}</td>
+      <td class="${plClass(pl)}">${plSign(pl)}${pl.toFixed(2)}%</td>
+      <td>
+        <button class="action-btn" onclick="openSellModal('ibkr','${a.ticker}')">Vender</button>
+        <button class="action-btn delete" onclick="removeAsset('ibkr','${a.ticker}')">✕</button>
+      </td>
+    </tr>`;
+  });
+
+  tbody.innerHTML = rows || '<tr><td colspan="8" style="text-align:center;color:var(--warm-gray);padding:40px">Sin posiciones</td></tr>';
+}
+
+function renderGBM() {
+  const gbm = DB.get('gbm') || [];
+  const tbody = document.getElementById('gbm-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = gbm.map(a => {
+    const price = PRICES[a.ticker.toUpperCase()] || a.buyPrice * (1 + a.pl/100);
+    const val = a.qty * price;
+    const pl = ((price - a.buyPrice) / a.buyPrice * 100);
+    return `<tr>
+      <td class="ticker-cell">${a.ticker}</td>
+      <td>${a.name}</td>
+      <td>${a.qty}</td>
+      <td>${fmt(a.buyPrice, 'MXN')}</td>
+      <td>${fmt(price, 'MXN')}</td>
+      <td>${fmt(val, 'MXN')}</td>
+      <td class="${plClass(pl)}">${plSign(pl)}${pl.toFixed(2)}%</td>
+      <td>
+        <button class="action-btn delete" onclick="removeAsset('gbm','${a.ticker}')">✕ Quitar</button>
+      </td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--warm-gray)">Sin posiciones en GBM</td></tr>';
+}
+
+function renderIBKR() {
+  const ibkr = DB.get('ibkr') || [];
+  const tbody = document.getElementById('ibkr-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = ibkr.map(a => {
+    const price = PRICES[a.ticker.toUpperCase()] || a.buyPrice * (1 + a.pl/100);
+    const val = a.qty * price;
+    const pl = ((price - a.buyPrice) / a.buyPrice * 100);
+    return `<tr>
+      <td class="ticker-cell">${a.ticker}</td>
+      <td>${a.name}</td>
+      <td>${a.qty}</td>
+      <td>${fmt(a.buyPrice, 'USD')}</td>
+      <td>${fmt(price, 'USD')}</td>
+      <td>${fmt(val, 'USD')}</td>
+      <td class="${plClass(pl)}">${plSign(pl)}${pl.toFixed(2)}%</td>
+      <td>
+        <button class="action-btn delete" onclick="removeAsset('ibkr','${a.ticker}')">✕ Quitar</button>
+      </td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--warm-gray)">Sin posiciones en IBKR</td></tr>';
+}
+
+function renderCrypto() {
+  const crypto = DB.get('crypto') || [];
+  const tbody = document.getElementById('crypto-tbody');
+  const empty = document.getElementById('crypto-empty');
+  if (!tbody) return;
+  if (crypto.length === 0) {
+    tbody.innerHTML = '';
+    if (empty) empty.style.display = 'block';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+  tbody.innerHTML = crypto.map(a => {
+    const price = CRYPTO_PRICES[a.ticker.toUpperCase()] || a.buyPrice;
+    const val = a.qty * price;
+    const pl = ((price - a.buyPrice) / a.buyPrice * 100);
+    return `<tr>
+      <td class="ticker-cell">${a.ticker}</td>
+      <td>${a.name}</td>
+      <td>${a.qty}</td>
+      <td>${fmt(a.buyPrice, 'USD')}</td>
+      <td>${fmt(price, 'USD')}</td>
+      <td>${fmt(val, 'USD')}</td>
+      <td class="${plClass(pl)}">${plSign(pl)}${pl.toFixed(2)}%</td>
+      <td><button class="action-btn delete" onclick="removeAsset('crypto','${a.ticker}')">✕</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderCash() {
+  const cash = DB.get('cash') || [];
+  const tbody = document.getElementById('cash-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = cash.map((c, i) => `<tr>
+    <td>${c.name}</td>
+    <td><span class="tag tag-cash">${c.currency}</span></td>
+    <td style="font-family:'DM Mono',monospace">${fmt(c.amount, c.currency)}</td>
+    <td style="color:var(--warm-gray);font-size:12px">${c.note||''}</td>
+    <td><button class="action-btn delete" onclick="removeCash(${i})">✕</button></td>
+  </tr>`).join('') || '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--warm-gray)">Sin efectivo registrado</td></tr>';
+}
+
+function renderHistory() {
+  const all = DB.get('history') || [];
+  const filter = document.getElementById('history-filter')?.value || 'all';
+  const filtered = filter === 'all' ? all : all.filter(h => h.type === filter);
+  const list = document.getElementById('history-list');
+  const empty = document.getElementById('history-empty');
+  if (!list) return;
+
+  if (filtered.length === 0) {
+    list.innerHTML = '';
+    if (empty) empty.style.display = 'block';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+
+  const icons = { buy:'📈', sell:'📉', rotate:'🔄', cash:'💵', dividend:'💰' };
+  const colors = { buy:'h-buy', sell:'h-sell', rotate:'h-rotate', cash:'h-cash' };
+
+  list.innerHTML = [...filtered].reverse().map(h => `
+    <div class="history-item">
+      <div class="history-type ${colors[h.type]||'h-cash'}">${icons[h.type]||'💼'}</div>
+      <div class="history-info">
+        <div class="history-title">${h.title}</div>
+        <div class="history-meta">${h.date} · ${h.account||''}</div>
+      </div>
+      <div class="history-amount ${h.amount > 0 ? 'pos' : 'neg'}">${h.amount > 0 ? '+':''} ${fmt(Math.abs(h.amount), h.currency||'MXN')}</div>
+    </div>
+  `).join('');
+}
+
+function addHistory(entry) {
+  const h = DB.get('history') || [];
+  h.push({ ...entry, date: new Date().toLocaleDateString('es-MX') });
+  DB.set('history', h);
+}
+
+// ═══════════════════════════════════════════════════════
+// CHARTS
+// ═══════════════════════════════════════════════════════
+let portfolioChart, performanceChart;
+
+function renderCharts() {
+  const gbm = calcGBMTotal();
+  const ibkrMXN = calcIBKRTotal() * FX_RATE;
+  const cash = calcCashTotal();
+  const crypto = calcCryptoTotal() * FX_RATE;
+
+  const colors = ['#2C2825','#B8965A','#52B788','#D4AE72','#9B2226','#7A746C'];
+
+  const ctx1 = document.getElementById('portfolioChart');
+  if (ctx1) {
+    if (portfolioChart) portfolioChart.destroy();
+    portfolioChart = new Chart(ctx1, {
+      type: 'doughnut',
+      data: {
+        labels: ['GBM Trading MX','IBKR Market USA','Efectivo','Crypto'],
+        datasets: [{ data: [gbm, ibkrMXN, cash, crypto], backgroundColor: colors, borderWidth: 0, hoverOffset: 8 }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { position:'bottom', labels:{ font:{ family:'DM Sans', size:11 }, color:'#2C2825', padding:16, usePointStyle:true }},
+          tooltip: { callbacks: { label: ctx => ` ${fmt(ctx.parsed, 'MXN')}` }}
+        },
+        cutout: '65%'
+      }
+    });
+  }
+
+  // Performance bar chart
+  const allPositions = [...(DB.get('gbm')||[]), ...(DB.get('ibkr')||[])];
+  const sorted = allPositions.sort((a,b) => b.pl - a.pl).slice(0, 12);
+
+  const ctx2 = document.getElementById('performanceChart');
+  if (ctx2) {
+    if (performanceChart) performanceChart.destroy();
+    performanceChart = new Chart(ctx2, {
+      type: 'bar',
+      data: {
+        labels: sorted.map(a => a.ticker),
+        datasets: [{
+          label: 'P/L %',
+          data: sorted.map(a => a.pl),
+          backgroundColor: sorted.map(a => a.pl >= 0 ? 'rgba(45,106,79,0.7)' : 'rgba(155,34,38,0.7)'),
+          borderWidth: 0,
+          borderRadius: 2,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend:{ display:false }, tooltip:{ callbacks:{ label: ctx => ` ${ctx.parsed.y.toFixed(2)}%` }}},
+        scales: {
+          x: { grid:{ display:false }, ticks:{ font:{ family:'DM Mono', size:9 }, color:'#7A746C' }},
+          y: { grid:{ color:'rgba(184,150,90,0.1)' }, ticks:{ font:{ family:'DM Mono', size:9 }, color:'#7A746C', callback: v => v+'%' }}
+        }
+      }
+    });
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// ADD / REMOVE ASSETS
+// ═══════════════════════════════════════════════════════
+let activeFormTab = 'stocks';
+let preselectedAccount = null;
+
+function openAddModal(account) {
+  preselectedAccount = account;
+  if (account === 'crypto') switchFormTab('crypto');
+  else if (account === 'cash') switchFormTab('cash');
+  else switchFormTab('stocks');
+  if (account === 'ibkr') document.getElementById('add-account').value = 'ibkr';
+  document.getElementById('add-modal').classList.add('open');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+function switchFormTab(tab) {
+  activeFormTab = tab;
+  document.querySelectorAll('.form-tab').forEach((t, i) => {
+    t.classList.toggle('active', ['stocks','crypto','cash'][i] === tab);
+  });
+  document.querySelectorAll('.tab-content').forEach((c, i) => {
+    c.classList.toggle('active', ['form-stocks','form-crypto','form-cash'][i] === `form-${tab}`);
+  });
+}
+
+function addAsset() {
+  if (activeFormTab === 'stocks') {
+    const ticker = document.getElementById('add-ticker').value.trim().toUpperCase();
+    const name = document.getElementById('add-name').value.trim() || ticker;
+    const account = document.getElementById('add-account').value;
+    const qty = parseFloat(document.getElementById('add-qty').value);
+    const buyPrice = parseFloat(document.getElementById('add-buy-price').value);
+    const currentPrice = parseFloat(document.getElementById('add-current-price').value) || buyPrice;
+    const currency = document.getElementById('add-currency').value;
+
+    if (!ticker || !qty || !buyPrice) { alert('Completa ticker, cantidad y precio de compra.'); return; }
+
+    const data = DB.get(account) || [];
+    const existing = data.findIndex(a => a.ticker === ticker);
+    const pl = ((currentPrice - buyPrice) / buyPrice * 100);
+    const entry = { ticker, name, qty, buyPrice, currentPrice, currency, pl };
+    if (existing >= 0) data[existing] = entry; else data.push(entry);
+    DB.set(account, data);
+    addHistory({ type:'buy', title:`Compra ${ticker}`, account: account.toUpperCase(), amount: qty*buyPrice, currency });
+    PRICES[ticker] = currentPrice;
+    ['add-ticker','add-name','add-qty','add-buy-price','add-current-price'].forEach(id => document.getElementById(id).value = '');
+  }
+
+  else if (activeFormTab === 'crypto') {
+    const ticker = document.getElementById('add-crypto-symbol').value.trim().toUpperCase();
+    const name = document.getElementById('add-crypto-name').value.trim() || ticker;
+    const qty = parseFloat(document.getElementById('add-crypto-qty').value);
+    const buyPrice = parseFloat(document.getElementById('add-crypto-price').value);
+
+    if (!ticker || !qty || !buyPrice) { alert('Completa todos los campos.'); return; }
+
+    const data = DB.get('crypto') || [];
+    const pl = 0;
+    data.push({ ticker, name, qty, buyPrice, currency:'USD', pl });
+    DB.set('crypto', data);
+    CRYPTO_PRICES[ticker] = buyPrice;
+    addHistory({ type:'buy', title:`Compra ${ticker} (Crypto)`, account:'CRYPTO', amount: qty*buyPrice, currency:'USD' });
+  }
+
+  else if (activeFormTab === 'cash') {
+    const name = document.getElementById('add-cash-name').value.trim();
+    const amount = parseFloat(document.getElementById('add-cash-amount').value);
+    const currency = document.getElementById('add-cash-currency').value;
+    const note = document.getElementById('add-cash-note').value.trim();
+
+    if (!name || !amount) { alert('Completa nombre y monto.'); return; }
+
+    const data = DB.get('cash') || [];
+    data.push({ name, amount, currency, note });
+    DB.set('cash', data);
+    addHistory({ type:'cash', title:`Depósito: ${name}`, account:'EFECTIVO', amount, currency });
+  }
+
+  closeModal('add-modal');
+  renderAll();
+  showToast('✓ Activo agregado al portafolio');
+}
+
+function removeAsset(account, ticker) {
+  if (!confirm(`¿Eliminar ${ticker} de tu portafolio?`)) return;
+  const data = DB.get(account) || [];
+  const filtered = data.filter(a => a.ticker !== ticker);
+  DB.set(account, filtered);
+  addHistory({ type:'sell', title:`Venta/baja ${ticker}`, account: account.toUpperCase(), amount:0, currency:'MXN' });
+  renderAll();
+  showToast('✓ Posición eliminada');
+}
+
+function removeCash(index) {
+  const data = DB.get('cash') || [];
+  data.splice(index, 1);
+  DB.set('cash', data);
+  renderAll();
+}
+
+function rotateCapital() {
+  const from = document.getElementById('rotate-from').value;
+  const to = document.getElementById('rotate-to').value;
+  const amount = parseFloat(document.getElementById('rotate-amount').value);
+  const note = document.getElementById('rotate-note').value;
+  if (!amount) { alert('Ingresa un monto.'); return; }
+  addHistory({ type:'rotate', title:`Rotación: ${from.toUpperCase()} → ${to.toUpperCase()}${note ? ' · '+note : ''}`, account:'ROTACIÓN', amount, currency:'MXN' });
+  document.getElementById('rotate-amount').value = '';
+  document.getElementById('rotate-note').value = '';
+  renderHistory();
+  showToast('✓ Rotación registrada');
+}
+
+function openSellModal(account, ticker) {
+  const qty = prompt(`¿Cuántas acciones de ${ticker} vendes?`);
+  if (!qty) return;
+  const price = prompt(`¿A qué precio? (actual de referencia)`);
+  if (!price) return;
+  addHistory({ type:'sell', title:`Venta ${qty} ${ticker}`, account:account.toUpperCase(), amount: parseFloat(qty)*parseFloat(price), currency: account==='ibkr'?'USD':'MXN' });
+  renderHistory();
+  showToast('✓ Venta registrada en historial');
+}
+
+// ═══════════════════════════════════════════════════════
+// AI ADVISOR
+// ═══════════════════════════════════════════════════════
+function generateWeeklyLetter() {
+  const gbm = DB.get('gbm') || [];
+  const ibkr = DB.get('ibkr') || [];
+  const total = calcGBMTotal() + calcIBKRTotal() * FX_RATE + calcCashTotal();
+  const winners = [...gbm,...ibkr].filter(a=>a.pl>0).sort((a,b)=>b.pl-a.pl);
+  const losers = [...gbm,...ibkr].filter(a=>a.pl<0).sort((a,b)=>a.pl-b.pl);
+  const topWinner = winners[0];
+  const topLoser = losers[0];
+
+  const today = new Date().toLocaleDateString('es-MX', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+  document.getElementById('weekly-letter').innerHTML = `
+    <strong>Carta semanal — ${today}</strong><br><br>
+    Estimado inversor,<br><br>
+    Tu portafolio acumula hoy un valor aproximado de <strong>${fmt(total,'MXN')}</strong>, distribuido entre tus cuentas GBM, IBKR y efectivo.
+    ${topWinner ? `Tu posición más destacada esta semana continúa siendo <strong>${topWinner.ticker}</strong> con un rendimiento de <strong>+${topWinner.pl.toFixed(2)}%</strong>, lo cual refleja fortaleza en el sector tecnológico y de gestión de activos.` : ''}
+    <br><br>
+    ${topLoser ? `Merece atención tu posición en <strong>${topLoser.ticker}</strong> con <strong>${topLoser.pl.toFixed(2)}%</strong>. La presión sobre este activo responde a factores macroeconómicos — recomendaría evaluar si el tesis de inversión original se mantiene vigente antes de considerar cualquier movimiento.` : ''}
+    <br><br>
+    Desde una perspectiva macro, el mercado continúa procesando las señales de la Reserva Federal en torno a tasas de interés. El dólar opera alrededor de <strong>$${FX_RATE.toFixed(2)} MXN</strong>. México mantiene un entorno de política monetaria restrictiva, lo cual favorece instrumentos de deuda de corto plazo como tu Smart Cash.
+    <br><br>
+    Mi recomendación para la semana: mantener disciplina en posiciones de largo plazo, evitar decisiones reactivas y aprovechar cualquier corrección como oportunidad de rebalanceo hacia activos con fundamentos sólidos.
+    <br><br>
+    Con consideración y rigor,<br>
+    <strong>Eminentia Advisor</strong>
+  `;
+}
+
+async function askAI() {
+  const question = document.getElementById('ai-question').value.trim();
+  if (!question) return;
+
+  const responseEl = document.getElementById('ai-response');
+  responseEl.style.display = 'block';
+  responseEl.innerHTML = '<span class="loading-spinner"></span> Analizando tu consulta...';
+
+  const apiKey = DB.get('settings')?.apiKey;
+  const gbm = DB.get('gbm') || [];
+  const ibkr = DB.get('ibkr') || [];
+  const total = calcGBMTotal() + calcIBKRTotal() * FX_RATE;
+
+  if (apiKey && apiKey.startsWith('sk-ant')) {
+    try {
+      const portfolioSummary = `Portafolio del usuario:
+GBM (${gbm.length} posiciones): ${gbm.map(a=>`${a.ticker} (${a.pl>0?'+':''}${a.pl.toFixed(1)}%)`).join(', ')}
+IBKR (${ibkr.length} posiciones): ${ibkr.map(a=>`${a.ticker} (${a.pl>0?'+':''}${a.pl.toFixed(1)}%)`).join(', ')}
+Patrimonio total aprox: ${fmt(total,'MXN')}
+Tipo de cambio: ${FX_RATE.toFixed(2)} MXN/USD`;
+
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json', 'x-api-key':apiKey, 'anthropic-version':'2023-06-01' },
+        body: JSON.stringify({
+          model:'claude-sonnet-4-20250514',
+          max_tokens:600,
+          messages:[{
+            role:'user',
+            content:`Eres Eminentia Advisor, un asesor financiero de primer nivel con el estilo analítico de Warren Buffett. Analiza el siguiente portafolio y responde a la pregunta del usuario de forma elegante, clara y accionable.\n\n${portfolioSummary}\n\nPregunta: ${question}\n\nResponde en español, de forma concisa (máximo 4 párrafos), con recomendaciones concretas.`
+          }]
+        })
+      });
+      const data = await res.json();
+      if (data.content?.[0]?.text) {
+        responseEl.innerHTML = data.content[0].text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      } else {
+        throw new Error('no response');
+      }
+    } catch(e) {
+      responseEl.innerHTML = generateLocalAIResponse(question);
+    }
+  } else {
+    await new Promise(r => setTimeout(r, 1200));
+    responseEl.innerHTML = generateLocalAIResponse(question);
+  }
+
+  document.getElementById('ai-question').value = '';
+}
+
+function generateLocalAIResponse(question) {
+  const gbm = DB.get('gbm') || [];
+  const ibkr = DB.get('ibkr') || [];
+  const q = question.toLowerCase();
+
+  if (q.includes('mejor') || q.includes('top') || q.includes('rendimiento')) {
+    const all = [...gbm,...ibkr].sort((a,b)=>b.pl-a.pl);
+    const top3 = all.slice(0,3).map(a=>`${a.ticker} (+${a.pl.toFixed(1)}%)`).join(', ');
+    return `Tus tres mejores posiciones actualmente son <strong>${top3}</strong>. Estos activos demuestran fortaleza relativa. Desde una perspectiva de valor a largo plazo, es prudente analizar si el catalizador original de cada inversión se mantiene vigente o si el mercado ya ha descontado el potencial de crecimiento. Considera hacer toma de utilidades parcial en posiciones con ganancias superiores al 30% y reasignar hacia activos con mayor margen de seguridad.`;
+  }
+
+  if (q.includes('peor') || q.includes('pérdida') || q.includes('negativ')) {
+    const all = [...gbm,...ibkr].filter(a=>a.pl<0).sort((a,b)=>a.pl-b.pl);
+    if (all.length === 0) return 'Todas tus posiciones actuales están en positivo. Excelente gestión del portafolio.';
+    const worst = all[0];
+    return `Tu posición con mayor pérdida es <strong>${worst.ticker}</strong> con <strong>${worst.pl.toFixed(2)}%</strong>. Antes de tomar una decisión, considera: ¿ha cambiado fundamentalmente el negocio? ¿Es una caída temporal de mercado o hay deterioro estructural? Si la tesis original se mantiene sólida, la paciencia suele ser la mejor estrategia. Si el negocio ha cambiado, considera la venta y reasignación del capital a oportunidades con mejor perspectiva.`;
+  }
+
+  if (q.includes('diversif') || q.includes('distribuci')) {
+    const gbmTotal = calcGBMTotal(), ibkrMXN = calcIBKRTotal()*FX_RATE;
+    const total = gbmTotal + ibkrMXN;
+    return `Tu portafolio tiene una distribución aproximada de <strong>${(gbmTotal/total*100).toFixed(0)}% en GBM (MXN)</strong> y <strong>${(ibkrMXN/total*100).toFixed(0)}% en IBKR (USD)</strong>. Esto te da exposición tanto al mercado local como al global, lo cual es positivo. Para mayor diversificación, considera agregar activos de renta fija o ETFs de mercados emergentes. La regla general de no tener más del 30% en un solo sector aplica bien a tu caso.`;
+  }
+
+  return `Basado en tu portafolio actual con ${gbm.length + ibkr.length} posiciones, mi análisis es el siguiente: el mercado actual requiere disciplina y enfoque en el largo plazo. Las condiciones macroeconómicas — política monetaria restrictiva, incertidumbre geopolítica y ajustes en valoraciones tecnológicas — sugieren mantener una postura equilibrada entre activos de crecimiento y preservación de capital. Recomiendo revisar mensualmente la concentración por sector y asegurar que ninguna posición individual supere el 15% del portafolio total.`;
+}
+
+function generateMacroAlerts() {
+  const alerts = [
+    { emoji:'🇺🇸', title:'Fed Policy', text:'La Fed mantiene tasas en 5.25-5.50%. Mercados esperan primer recorte en junio 2026. Impacto directo en tus posiciones de growth como NFLX y UNH.', color:'var(--gold-pale)' },
+    { emoji:'💵', title:'USD/MXN', text:`Tipo de cambio: $${FX_RATE.toFixed(2)}. El peso opera con cierta estabilidad. Tus posiciones en IBKR se benefician si el dólar se fortalece.`, color:'rgba(45,106,79,0.08)' },
+    { emoji:'📊', title:'S&P 500', text:'El índice cotiza cerca de máximos históricos. Tu SPY y QQQ se benefician pero valuaciones elevadas sugieren cautela en nuevas entradas.', color:'rgba(184,150,90,0.08)' },
+    { emoji:'🌏', title:'China / Geopolítica', text:'Tensiones comerciales continúan. Sectores afectados: semiconductores (INTC) y consumo discreto. Mantén posición pero vigila next earnings.', color:'rgba(155,34,38,0.06)' },
+  ];
+
+  document.getElementById('macro-alerts').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      ${alerts.map(a=>`
+        <div style="background:${a.color};border:1px solid var(--border);padding:20px">
+          <div style="font-size:20px;margin-bottom:8px">${a.emoji}</div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:16px;margin-bottom:8px">${a.title}</div>
+          <div style="font-size:12px;color:var(--warm-gray);line-height:1.6">${a.text}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════
+// NEWS
+// ═══════════════════════════════════════════════════════
+function generateNews() {
+  const macro = [
+    { source:'Bloomberg', title:'Fed signals patience on rate cuts amid persistent inflation data', summary:'Fed officials indicate they need more evidence of inflation cooling before cutting rates, pushing timeline to mid-2026.', time:'hace 2h' },
+    { source:'Reuters', title:'Global markets rally as China stimulus measures take effect', summary:'Asian and European markets gain on stronger-than-expected Chinese manufacturing data, boosting EM exposure.', time:'hace 4h' },
+    { source:'FT', title:'Oil prices surge on OPEC+ production cuts extension', summary:'OPEC+ acuerda mantener recortes de producción, impactando costos operativos globales y perspectivas inflacionarias.', time:'hace 6h' },
+    { source:'WSJ', title:'Dollar strengthens as safe-haven demand rises amid geopolitical tensions', summary:'El dólar se aprecia frente al peso y otras divisas emergentes. Analistas esperan USD/MXN entre 17 y 18.', time:'hace 8h' },
+  ];
+
+  const positions = [
+    { source:'CNBC', title:'Apple reports record services revenue, stock hits new high', summary:'AAPL sube tras resultados trimestrales superiores a estimados. Tu posición de 12 acciones se beneficia directamente.', time:'hace 1h' },
+    { source:'Barron\'s', title:'Netflix subscriber growth beats expectations in Q4', summary:'NFLX añade más suscriptores de lo esperado. La acción podría recuperar terreno tras el ajuste reciente.', time:'hace 3h' },
+    { source:'MarketWatch', title:'Intel unveils new chip roadmap, shares jump', summary:'INTC presenta su estrategia de fabricación para 2026-2028. Tu posición de 93 acciones registra movimiento positivo.', time:'hace 5h' },
+    { source:'Yahoo Finance', title:'BlackRock AUM reaches all-time high amid passive investing boom', summary:'BLK reporta AUM récord. Tu posición muestra el +34% consistente con los fundamentos del negocio.', time:'hace 7h' },
+  ];
+
+  const mx = [
+    { source:'El Financiero', title:'Banxico mantiene tasa en 10.5% ante presiones inflacionarias', summary:'La junta de gobierno decide mantener la tasa de referencia, afectando rendimientos de Smart Cash e instrumentos de deuda.', time:'hace 2h' },
+    { source:'Reforma', title:'IPC supera los 55,000 puntos en sesión alcista', summary:'El Índice de Precios y Cotizaciones registra ganancias en sesión impulsada por metales y sector financiero.', time:'hace 4h' },
+  ];
+
+  function newsHTML(items) {
+    return items.map(n => `
+      <div class="news-card">
+        <div class="news-source">${n.source}</div>
+        <div class="news-title">${n.title}</div>
+        <div class="news-summary">${n.summary}</div>
+        <div class="news-meta">${n.time}</div>
+      </div>
+    `).join('');
+  }
+
+  document.getElementById('macro-news').innerHTML = newsHTML(macro);
+  document.getElementById('position-news').innerHTML = newsHTML(positions);
+  document.getElementById('mx-news').innerHTML = newsHTML(mx);
+  generateMacroAlerts();
+}
+
+// ═══════════════════════════════════════════════════════
+// REPORTS
+// ═══════════════════════════════════════════════════════
+function showReport(period) {
+  const total = calcGBMTotal() + calcIBKRTotal() * FX_RATE + calcCashTotal();
+  const gbm = DB.get('gbm') || [];
+  const ibkr = DB.get('ibkr') || [];
+  const all = [...gbm,...ibkr];
+  const winners = all.filter(a=>a.pl>0).sort((a,b)=>b.pl-a.pl);
+  const losers = all.filter(a=>a.pl<0).sort((a,b)=>a.pl-b.pl);
+
+  const titles = { weekly:'Carta Semanal', monthly:'Reporte Mensual', quarterly:'Análisis Trimestral', annual:'Reporte Anual' };
+  const periods = { weekly:'Semana del 17 al 21 de febrero, 2026', monthly:'Febrero 2026', quarterly:'Q1 2026 (ene–mar)', annual:'Año completo 2025' };
+
+  let body = '';
+  if (period === 'weekly') {
+    body = `Estimado inversor,\n\nDurante esta semana, tu portafolio cerró con un valor aproximado de ${fmt(total,'MXN')}, distribuido en ${all.length} posiciones activas.\n\nDestacados de la semana:\n• ${winners.slice(0,3).map(a=>`${a.ticker}: +${a.pl.toFixed(2)}%`).join('\n• ')}\n\nPosiciones que requieren atención:\n• ${losers.slice(0,2).map(a=>`${a.ticker}: ${a.pl.toFixed(2)}%`).join('\n• ')}\n\nLa Reserva Federal mantiene señales hawkish, lo cual presiona activos growth. El peso mexicano opera estable frente al dólar ($${FX_RATE.toFixed(2)}).\n\nRecomendación para la próxima semana: Mantener posiciones core. Evaluar rebalanceo parcial en los ganadores con más del 30% de rendimiento. No realizar movimientos reactivos.\n\nCon rigor y perspectiva,\nEminentia Advisor`;
+  } else if (period === 'monthly') {
+    body = `Estimado inversor,\n\nCerramos febrero 2026 con un portafolio valorizado en ${fmt(total,'MXN')}.\n\nResumen del mes:\n• Posiciones positivas: ${winners.length} de ${all.length}\n• Mejor performer: ${winners[0]?.ticker||'—'} (+${winners[0]?.pl.toFixed(2)||0}%)\n• Menor performer: ${losers[losers.length-1]?.ticker||'—'} (${losers[losers.length-1]?.pl.toFixed(2)||0}%)\n\nContexto macroeconómico:\nEl mes estuvo marcado por la incertidumbre sobre los recortes de tasas de la Fed. Los mercados globales mostraron resiliencia. México mantuvo su tasa de referencia, favoreciendo instrumentos de renta fija.\n\nPrincipales movimientos en tu portafolio:\nSin cambios significativos registrados. Portafolio en modo de consolidación.\n\nPerspectiva para marzo:\nEl calendario económico trae datos de empleo en EE.UU. y decisión del Banxico. Se recomienda mantener liquidez y estar preparado para aprovechar correcciones.\n\nAtentamente,\nEminentia Advisor`;
+  } else if (period === 'quarterly') {
+    body = `Análisis Trimestral — Q1 2026\n\nEstimado inversor,\n\nAl cierre del primer trimestre, tu patrimonio asciende a ${fmt(total,'MXN')}, reflejando una evolución positiva en el contexto de mercados globales volátiles.\n\nComparativa vs Benchmarks:\n• S&P 500 (SPY): Tu posición refleja el rendimiento del índice\n• NASDAQ (QQQ): Exposición a tecnología con buen desempeño\n• IPC México: Exposición local vía GBM\n\nAnálisis sectorial:\nTecnología (+): INTC, AAPL muestran recuperación\nConsumo discreto (-): NFLX, LULU bajo presión\nFinanciero (+): BLK en máximos históricos\nSalud (-): UNH enfrenta presión regulatoria\n\nRecomendaciones estratégicas para Q2:\n1. Considerar aumentar exposición a ETFs globales (VT)\n2. Evaluar posición en PYPL — deterioro fundamental persistente\n3. Mantener Smart Cash como colchón de liquidez del 5-10%\n4. Explorar instrumentos con cobertura cambiaria\n\nEminentia Advisor`;
+  } else {
+    body = `Reporte Anual 2025 — Estilo Warren Buffett\n\nA mis socios y compañeros inversores,\n\nEl año 2025 fue un período de consolidación y aprendizaje para nuestro portafolio. El mundo de las inversiones nos recordó, una vez más, que la paciencia y la disciplina son las virtudes más rentables que puede poseer un inversor.\n\nResultados del año:\nCerramos 2025 con un patrimonio aproximado de ${fmt(total,'MXN')}, distribuido estratégicamente entre mercados nacionales e internacionales. La diversificación geográfica y sectorial demostró su valor durante períodos de turbulencia.\n\nLecciones del año:\n"El mercado es un dispositivo para transferir dinero del impaciente al paciente." — Warren Buffett\n\nEsta máxima fue particularmente relevante en 2025. Las posiciones que mantuvimos con convicción, a pesar de las correcciones intermedias, demostraron su fortaleza fundamental.\n\nMirada hacia 2026:\nLos próximos 12 meses presentan oportunidades en: inteligencia artificial (chips, infraestructura), energías renovables, y mercados emergentes con fundamentos sólidos. México, con su nearshoring y política monetaria más flexible esperada, podría ofrecer oportunidades interesantes.\n\nCompromiso:\nSeguiremos aplicando un análisis riguroso, basado en fundamentos, con horizonte de largo plazo y gestión prudente del riesgo.\n\nCon gratitud y determinación,\nEminentia Advisor\nFebrero 2026`;
+  }
+
+  document.getElementById('modal-report-title').textContent = titles[period];
+  document.getElementById('modal-report-period').textContent = periods[period];
+  document.getElementById('modal-report-body').textContent = body;
+  document.getElementById('report-modal').classList.add('open');
+}
+
+function sendReportEmail() {
+  const email = currentUser?.email || DB.get('user')?.email || 'tu@email.com';
+  showToast(`📧 Reporte enviado a ${email}`);
+  closeModal('report-modal');
+}
+
+// ═══════════════════════════════════════════════════════
+// PRIVACY & SETTINGS
+// ═══════════════════════════════════════════════════════
+let isPrivate = true;
+
+function togglePrivacy() {
+  isPrivate = !isPrivate;
+  const status = document.getElementById('user-status');
+  status.textContent = isPrivate ? '● Privado' : '● Público';
+  status.style.color = isPrivate ? 'var(--gold)' : 'var(--green)';
+  showToast(isPrivate ? '🔒 Portafolio en modo privado' : '🌐 Portafolio en modo público');
+}
+
+function setPrivacy(mode) {
+  isPrivate = mode === 'private';
+  document.getElementById('btn-private').style.borderColor = isPrivate ? 'var(--gold)' : '';
+  document.getElementById('btn-public').style.borderColor = !isPrivate ? 'var(--gold)' : '';
+  togglePrivacy(); togglePrivacy(); // sync state
+  isPrivate = mode === 'private';
+  document.getElementById('user-status').textContent = isPrivate ? '● Privado' : '● Público';
+}
+
+function toggleRealName() {
+  const t = document.getElementById('toggle-realname');
+  t.classList.toggle('on');
+}
+
+function saveSettings() {
+  const name = document.getElementById('setting-display-name').value;
+  const email = document.getElementById('setting-email').value;
+  if (name) document.getElementById('user-name').textContent = name;
+  if (email) document.getElementById('user-email-display').textContent = email;
+  showToast('✓ Configuración guardada');
+}
+
+function saveAISettings() {
+  const apiKey = document.getElementById('api-key').value;
+  const settings = DB.get('settings') || {};
+  settings.apiKey = apiKey;
+  DB.set('settings', settings);
+  showToast('✓ Configuración de IA guardada');
+}
+
+function toggleEmail(period) {
+  const schedule = DB.get('emailSchedule') || {};
+  schedule[period] = !schedule[period];
+  DB.set('emailSchedule', schedule);
+  const toggle = document.getElementById(`toggle-${period}`);
+  toggle.classList.toggle('on', schedule[period]);
+  toggle.nextElementSibling.textContent = schedule[period] ? 'Activado' : 'Desactivado';
+  showToast(schedule[period] ? `✓ Reporte ${period} activado` : `Reporte ${period} desactivado`);
+}
+
+function exportData() {
+  const data = {
+    gbm: DB.get('gbm'), ibkr: DB.get('ibkr'),
+    crypto: DB.get('crypto'), cash: DB.get('cash'),
+    history: DB.get('history'), exportDate: new Date().toISOString()
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `eminentia-${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
+}
+
+// ═══════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════
+const pageTitles = {
+  dashboard:'Dashboard',gbm:'GBM Trading MX',ibkr:'IBKR Market USA',
+  crypto:'Crypto',cash:'Efectivo & Efectivo',ai:'IA Advisor',
+  news:'Noticias & Macro',reports:'Reportes',history:'Historial',settings:'Configuración'
+};
+
+function showPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('panel-'+name)?.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if (n.getAttribute('onclick')?.includes("'"+name+"'")) n.classList.add('active');
+  });
+  document.getElementById('page-title').textContent = pageTitles[name] || name;
+  if (name === 'ai') { generateWeeklyLetter(); generateMacroAlerts(); }
+  if (window.innerWidth < 768) document.getElementById('sidebar').classList.remove('open');
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+// ═══════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--cream);padding:12px 24px;font-size:13px;z-index:9999;font-family:"DM Sans",sans-serif;box-shadow:0 8px 32px rgba(0,0,0,0.3);animation:fadeUp 0.3s ease;white-space:nowrap';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  const saved = DB.get('user');
+  if (saved?.name) {
+    setUser(saved);
+  }
+});
+</script>
+</body>
+</html>
